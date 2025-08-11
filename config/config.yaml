@@ -1,0 +1,6 @@
+# 基础配置
+app:
+  port: 8080
+database:
+  driver: clickhouse
+  source: "clickhouse://default:000000@123.57.241.163:9000/default"
