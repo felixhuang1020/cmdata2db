@@ -33,6 +33,15 @@ func InitializeCk() error {
 		log.Error("数据库连接失败: %v", err)
 		return err
 	}
+	sqlDB, err := Engine.DB()
+	if err != nil {
+		log.Error("数据库连接失败: %v", err)
+		return err
+	}
+	sqlDB.SetMaxIdleConns(10)                 // 增加空闲连接数
+	sqlDB.SetMaxOpenConns(10)                 // 最大打开连接数
+	sqlDB.SetConnMaxLifetime(5 * time.Minute) // 减少连接生命周期
+	sqlDB.SetConnMaxIdleTime(5 * time.Minute)
 	return nil
 }
 

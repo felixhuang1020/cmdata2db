@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/gin-gonic/gin v1.10.1
+	github.com/samber/lo v1.51.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.20.1
 	gorm.io/driver/clickhouse v0.7.0
@@ -60,7 +61,7 @@ require (
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"cmdata2db/config"
 	"cmdata2db/internal/model"
 
 	"gorm.io/gorm"
@@ -24,5 +25,5 @@ func (r *OrderRepository) GetOrders() ([]*model.Tb_cust_instanceprocess, error) 
 }
 
 func (r *OrderRepository) SaveBatchOrderData(orders []*model.Tb_cust_instanceprocess) error {
-	return r.engine.Create(orders).Error
+	return r.engine.CreateInBatches(orders, config.Conf.App.Batch).Error
 }

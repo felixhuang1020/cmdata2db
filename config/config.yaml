@@ -1,6 +1,7 @@
 # 基础配置
 app:
   port: 8080
+  batch: 3
 database:
   driver: clickhouse
-  source: "clickhouse://default:000000@123.57.241.163:9000/default"
+  source: "clickhouse://default:000000@123.57.241.163:9000/default?dial_timeout=200ms&max_execution_time=60"

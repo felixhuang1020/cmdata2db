@@ -1,13 +1,17 @@
 package controller
 
 import (
+	"cmdata2db/config"
 	"cmdata2db/internal/model"
 	"cmdata2db/internal/service"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type OrderController struct {
@@ -66,7 +70,12 @@ func (oc *OrderController) SaveBatchOrderData(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})
 		return
 	}
-	defer response.Body.Close()
+
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Warnf("关闭HTTP响应体失败: %v", err)
+		}
+	}()
 
 	if response.StatusCode != http.StatusOK {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -76,57 +85,75 @@ func (oc *OrderController) SaveBatchOrderData(c *gin.Context) {
 		return
 	}
 
-	var apiData APIResponse
-	if err := json.NewDecoder(response.Body).Decode(&apiData); err != nil {
+	var apiResponse APIResponse
+	if err := json.NewDecoder(response.Body).Decode(&apiResponse); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": 500,
 			"msg":  "解析API响应失败: " + err.Error(),
-			"body": apiData, // 显示实际响应内容
+			"body": apiResponse,
 		})
 		return
 	}
 
-	orders := []*model.Tb_cust_instanceprocess{
-		{
-			OrderID:             apiData.Data[0].OrderID,
-			TaskID:              apiData.Data[0].TaskID,
-			Creatime:            apiData.Data[0].Creatime,
-			Dealtime:            apiData.Data[0].Dealtime,
-			Answertime:          apiData.Data[0].Answertime,
-			Dealduration:        apiData.Data[0].Dealduration,
-			Answerduration:      apiData.Data[0].Answerduration,
-			Creatuser:           apiData.Data[0].Creatuser,
-			Dealuser:            apiData.Data[0].Dealuser,
-			Dealcontent:         apiData.Data[0].Dealcontent,
-			Dealprocess:         apiData.Data[0].Dealprocess,
-			Operate:             apiData.Data[0].Operate,
-			State:               apiData.Data[0].State,
-			Dealsla:             apiData.Data[0].Dealsla,
-			Answersla:           apiData.Data[0].Answersla,
-			Dealdeadline:        apiData.Data[0].Dealdeadline,
-			Answerdeadline:      apiData.Data[0].Answerdeadline,
-			Dealtimeout:         apiData.Data[0].Dealtimeout,
-			Answertimeout:       apiData.Data[0].Answertimeout,
-			Pendduration:        apiData.Data[0].Pendduration,
-			Dealtimeoutcause:    apiData.Data[0].Dealtimeoutcause,
-			Responsetimeoutcase: apiData.Data[0].Responsetimeoutcase,
-			Transferreason:      apiData.Data[0].Transferreason,
+	// 处理多个订单数据
+	var orders []*model.Tb_cust_instanceprocess
+	for _, item := range apiResponse.Data {
+		order := &model.Tb_cust_instanceprocess{
+			OrderID:             item.OrderID,
+			TaskID:              item.TaskID,
+			Creatime:            item.Creatime,
+			Dealtime:            item.Dealtime,
+			Answertime:          item.Answertime,
+			Dealduration:        item.Dealduration,
+			Answerduration:      item.Answerduration,
+			Creatuser:           item.Creatuser,
+			Dealuser:            item.Dealuser,
+			Dealcontent:         item.Dealcontent,
+			Dealprocess:         item.Dealprocess,
+			Operate:             item.Operate,
+			State:               item.State,
+			Dealsla:             item.Dealsla,
+			Answersla:           item.Answersla,
+			Dealdeadline:        item.Dealdeadline,
+			Answerdeadline:      item.Answerdeadline,
+			Dealtimeout:         item.Dealtimeout,
+			Answertimeout:       item.Answertimeout,
+			Pendduration:        item.Pendduration,
+			Dealtimeoutcause:    item.Dealtimeoutcause,
+			Responsetimeoutcase: item.Responsetimeoutcase,
+			Transferreason:      item.Transferreason,
 			WriteTime:           time.Now(),
-		},
+		}
+		orders = append(orders, order)
 	}
 
-	if err := oc.OrderService.SaveBatchOrderData(orders); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "保存数据失败: " + err.Error(),
+	// 检查是否有数据
+	if len(orders) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"code":  200,
+			"msg":   "没有数据需要保存",
+			"count": 0,
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "数据保存成功",
-		"data": orders,
-	})
+	// 保存所有订单数据
+	batches := lo.Chunk(orders, config.Conf.App.Batch)
+	for i, batch := range batches {
+		fmt.Printf("处理第 %d 批，共 %d 条数据\n", i+1, len(batch))
+		if err := oc.OrderService.SaveBatchOrderData(batch); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"code": 500,
+				"msg":  "保存数据失败: " + err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"code":  200,
+			"msg":   "数据保存成功",
+			"count": len(batch),
+			"data":  batch,
+		})
+	}
 
 }
