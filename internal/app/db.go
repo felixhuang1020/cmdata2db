@@ -13,8 +13,8 @@ import (
 
 var Engine *gorm.DB
 
-// InitializeMySQL 数据库初始化
-func InitializeMySQL() error {
+// InitializeCk 数据库初始化
+func InitializeCk() error {
 	var err error
 	Engine, err = gorm.Open(clickhouse.New(clickhouse.Config{
 		DSN: config.Conf.Database.Source,
