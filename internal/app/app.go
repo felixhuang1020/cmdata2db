@@ -13,7 +13,5 @@ func InitializeAll() error {
 	}
 
 	// 初始化定时器
-	InitCronJobs()
-
 	return nil
 }
