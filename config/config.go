@@ -12,8 +12,9 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Port  int `mapstructure:"port"`
-	Batch int `mapstructure:"batch"`
+	Port       int    `mapstructure:"port"`
+	Batch      int    `mapstructure:"batch"`
+	RequestUrl string `mapstructure:"request_url"`
 }
 
 type DatabaseConfig struct {

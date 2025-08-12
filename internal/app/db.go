@@ -2,10 +2,11 @@ package app
 
 import (
 	"cmdata2db/config"
+	"cmdata2db/internal/middleware"
 	"context"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"gorm.io/driver/clickhouse"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -25,17 +26,18 @@ func InitializeCk() error {
 		},
 	})
 	if err != nil {
-		log.Error("数据库连接失败: %v", err)
+		middleware.GetLogger().Error("数据库连接失败", zap.Error(err))
 		panic("数据库连接失败")
 		return err
 	}
 	if err = pingDB(Engine); err != nil {
-		log.Error("数据库连接失败: %v", err)
+		middleware.GetLogger().Error("数据库连接无效", zap.Error(err))
+		panic("数据库连接无效")
 		return err
 	}
 	sqlDB, err := Engine.DB()
 	if err != nil {
-		log.Error("数据库连接失败: %v", err)
+		middleware.GetLogger().Error("数据库连接无效", zap.Error(err))
 		return err
 	}
 	sqlDB.SetMaxIdleConns(10)                 // 增加空闲连接数

@@ -2,6 +2,7 @@
 app:
   port: 8080
   batch: 3
+  request_url: http://127.0.0.1:4523/m2/6021227-5710205-default/286511927
 database:
   driver: clickhouse
   source: "clickhouse://default:000000@123.57.241.163:9000/default?dial_timeout=200ms&max_execution_time=60"
