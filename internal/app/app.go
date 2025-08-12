@@ -12,5 +12,6 @@ func InitializeAll() error {
 		return fmt.Errorf("MySQL初始化错误: %v", err)
 	}
 
+	// 初始化定时器
 	return nil
 }
