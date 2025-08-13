@@ -1,0 +1,8 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  title: 工单数据处理服务API
+  version: 1.0.0
+paths: {}
+swagger: "2.0"
