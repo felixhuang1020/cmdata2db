@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.51.0
 	github.com/spf13/viper v1.20.1
 	go.uber.org/zap v1.27.0

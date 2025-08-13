@@ -3,12 +3,16 @@ package app
 import (
 	"cmdata2db/config"
 	v1 "cmdata2db/internal/api/v1"
+	"cmdata2db/internal/controller"
 	"cmdata2db/internal/middleware"
+	"cmdata2db/internal/service"
 	"cmdata2db/internal/utils"
 	"fmt"
 	"io"
+	"net/http/httptest"
 
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
@@ -43,6 +47,31 @@ func Start() {
 	// 初始化路由
 	r := gin.Default()
 	v1.SetupRoutes(r, Engine)
+
+	// 初始化定时任务
+	cronSpec := config.Conf.App.CronSpec
+	if cronSpec == "" {
+		middleware.GetLogger().Warn("未配置cron表达式，定时任务未启动")
+	} else {
+		c := cron.New()
+		_, err := c.AddFunc(cronSpec, func() {
+			middleware.GetLogger().Info("定时任务开始执行")
+			// 创建模拟上下文
+			ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+			// 实例化控制器
+			orderService := service.NewOrderService(Engine)
+			orderController := controller.NewOrderController(orderService)
+			// 执行任务
+			orderController.SaveBatchOrderData(ctx)
+		})
+		if err != nil {
+			middleware.GetLogger().Error("定时任务添加失败", zap.Error(err))
+		} else {
+			c.Start()
+			defer c.Stop()
+			middleware.GetLogger().Info("定时任务已启动", zap.String("cron_spec", cronSpec))
+		}
+	}
 
 	// 启动服务
 	err = r.Run(fmt.Sprintf(":%d", config.Conf.App.Port))

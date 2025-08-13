@@ -15,6 +15,7 @@ type AppConfig struct {
 	Port       int    `mapstructure:"port"`
 	Batch      int    `mapstructure:"batch"`
 	RequestUrl string `mapstructure:"request_url"`
+	CronSpec   string `mapstructure:"cron_spec"`
 }
 
 type DatabaseConfig struct {
